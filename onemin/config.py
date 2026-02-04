@@ -48,10 +48,16 @@ class Settings(BaseSettings):
     youtube_client_secret: Optional[str] = None
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
+    google_api_key: Optional[str] = None  # For Gemini
 
-    # AI settings
-    ai_provider: str = "anthropic"  # anthropic, openai
-    ai_model: str = "claude-sonnet-4-20250514"
+    # AI settings for metadata generation
+    ai_provider: str = "deepseek"  # deepseek, openai, anthropic, gemini
+    ai_model: str = "deepseek-chat"  # Model name for provider
+
+    # AI settings for thumbnail generation (Gemini imagen)
+    thumbnail_ai_provider: str = "gemini"  # gemini, openai
+    thumbnail_ai_model: str = "gemini-2.0-flash-exp"
 
     # Processing settings
     max_frames: int = 10

@@ -1,10 +1,12 @@
 {
   "watch_folder": "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Upload",
-  "youtube_channel": "your-channel-name",
+  "youtube_channel": "minhsao",
   "default_privacy": "unlisted",
-  "thumbnail_style": "mrbeast",
-  "ai_provider": "anthropic",
-  "ai_model": "claude-sonnet-4-20250514",
+  "thumbnail_style": "ai",
+  "ai_provider": "deepseek",
+  "ai_model": "deepseek-chat",
+  "thumbnail_ai_provider": "gemini",
+  "thumbnail_ai_model": "gemini-2.0-flash-exp",
   "max_frames": 10,
   "transcribe_model": "base"
 }

@@ -12,7 +12,7 @@ from rich.prompt import Prompt, Confirm
 from rich.table import Table
 
 app = typer.Typer(
-    name="1minautoyt",
+    name="onemin",
     help="Upload YouTube videos in one minute. Automated metadata, thumbnails, and publishing.",
     add_completion=False,
 )
@@ -22,7 +22,7 @@ console = Console()
 def print_banner():
     """Print the app banner."""
     console.print(Panel.fit(
-        "[bold cyan]1MinAutoYT[/bold cyan]\n"
+        "[bold cyan]OneMin[/bold cyan]\n"
         "[dim]Upload YouTube videos in one minute[/dim]",
         border_style="cyan",
     ))

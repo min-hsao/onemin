@@ -76,7 +76,7 @@ def process_video(
         # Step 1: Analyze video
         task = progress.add_task("Analyzing video...", total=None)
 
-        work_dir = Path(tempfile.mkdtemp(prefix="1minautoyt_"))
+        work_dir = Path(tempfile.mkdtemp(prefix="onemin_"))
         analysis = analyze_video(video_path, work_dir)
 
         progress.update(task, description="[green]✓ Video analyzed[/green]")

@@ -164,6 +164,117 @@ def create_minimal_thumbnail(
     return output_path
 
 
+def create_ai_thumbnail_gemini(
+    frame_path: Path,
+    title: str,
+    description: str,
+    output_path: Path,
+) -> Path:
+    """Create an AI-generated Mr. Beast-style thumbnail using Gemini.
+
+    Uses Gemini to generate a prompt, then creates thumbnail with
+    image generation or enhanced frame processing.
+    """
+    from .config import get_settings
+    settings = get_settings()
+
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        raise ImportError("google-generativeai not installed. Run: pip install google-generativeai")
+
+    if not settings.google_api_key:
+        raise ValueError("GOOGLE_API_KEY not set in .env")
+
+    genai.configure(api_key=settings.google_api_key)
+
+    # Load the frame to use as reference
+    img = Image.open(frame_path)
+    img = img.resize((1280, 720), Image.Resampling.LANCZOS)
+
+    # Use Gemini to analyze frame and suggest thumbnail enhancements
+    model = genai.GenerativeModel(settings.thumbnail_ai_model or "gemini-2.0-flash-exp")
+
+    prompt = f"""Analyze this video frame for a YouTube thumbnail. The video is titled: "{title}"
+
+Suggest:
+1. Best text to overlay (2-4 impactful words, Mr. Beast style - CAPS, exciting)
+2. Text color that contrasts well with the image (hex code)
+3. Where to place text (top, center, bottom)
+4. Any visual enhancements needed
+
+Respond in JSON format:
+{{"overlay_text": "...", "text_color": "#FFFF00", "position": "bottom", "enhance_saturation": 1.3, "enhance_contrast": 1.2}}"""
+
+    try:
+        # Upload frame for analysis
+        response = model.generate_content([prompt, img])
+        import json
+        suggestions = json.loads(response.text)
+
+        # Apply AI suggestions
+        enhancer = ImageEnhance.Color(img)
+        img = enhancer.enhance(suggestions.get("enhance_saturation", 1.3))
+
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(suggestions.get("enhance_contrast", 1.2))
+
+        # Add vignette
+        img = add_vignette(img)
+
+        # Draw text with AI suggestions
+        draw = ImageDraw.Draw(img)
+
+        try:
+            font_paths = [
+                "/System/Library/Fonts/Supplemental/Impact.ttf",
+                "/System/Library/Fonts/Helvetica.ttc",
+            ]
+            font = None
+            for fp in font_paths:
+                if Path(fp).exists():
+                    font = ImageFont.truetype(fp, 90)
+                    break
+            if font is None:
+                font = ImageFont.load_default()
+        except Exception:
+            font = ImageFont.load_default()
+
+        text = suggestions.get("overlay_text", title.upper()[:20])
+        text_color = suggestions.get("text_color", "#FFFF00")
+        position = suggestions.get("position", "bottom")
+
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+
+        x = (1280 - text_width) // 2
+        if position == "top":
+            y = 50
+        elif position == "center":
+            y = (720 - text_height) // 2
+        else:  # bottom
+            y = 720 - text_height - 80
+
+        # Draw stroke
+        for dx in range(-4, 5):
+            for dy in range(-4, 5):
+                if dx != 0 or dy != 0:
+                    draw.text((x + dx, y + dy), text, font=font, fill="#000000")
+
+        draw.text((x, y), text, font=font, fill=text_color)
+
+    except Exception as e:
+        print(f"AI enhancement failed, falling back to standard: {e}")
+        # Fallback to standard mrbeast style
+        return create_mrbeast_thumbnail(frame_path, title, output_path)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(output_path, "JPEG", quality=95)
+
+    return output_path
+
+
 def generate_thumbnail(
     analysis: AnalysisResult,
     metadata: VideoMetadata,
@@ -177,7 +288,7 @@ def generate_thumbnail(
         analysis: Video analysis result with frames
         metadata: Generated metadata with suggested frame index
         output_path: Where to save the thumbnail
-        style: Thumbnail style (mrbeast, minimal). Uses config if None.
+        style: Thumbnail style (mrbeast, minimal, ai). Uses config if None.
         custom_frame: Use this frame instead of auto-selected one
 
     Returns:
@@ -198,7 +309,14 @@ def generate_thumbnail(
         )
 
     # Generate based on style
-    if style == "mrbeast":
+    if style == "ai":
+        create_ai_thumbnail_gemini(
+            source_frame,
+            metadata.title,
+            metadata.description,
+            output_path,
+        )
+    elif style == "mrbeast":
         create_mrbeast_thumbnail(source_frame, metadata.title, output_path)
     elif style == "minimal":
         create_minimal_thumbnail(source_frame, output_path)

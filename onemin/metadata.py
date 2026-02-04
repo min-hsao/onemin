@@ -150,6 +150,105 @@ def generate_metadata_openai(
     )
 
 
+def generate_metadata_deepseek(
+    analysis: AnalysisResult,
+    custom_instructions: Optional[str] = None,
+) -> VideoMetadata:
+    """Generate metadata using DeepSeek."""
+    settings = get_settings()
+
+    try:
+        import openai  # DeepSeek uses OpenAI-compatible API
+    except ImportError:
+        raise ImportError("openai not installed. Run: pip install openai")
+
+    if not settings.deepseek_api_key:
+        raise ValueError("DEEPSEEK_API_KEY not set in .env")
+
+    client = openai.OpenAI(
+        api_key=settings.deepseek_api_key,
+        base_url="https://api.deepseek.com/v1",
+    )
+
+    prompt = METADATA_PROMPT.format(
+        transcript=analysis.transcript[:8000],
+        duration=analysis.video_info.duration,
+        minutes=analysis.video_info.duration / 60,
+        width=analysis.video_info.width,
+        height=analysis.video_info.height,
+        filename=analysis.video_info.path.name,
+    )
+
+    if custom_instructions:
+        prompt += f"\n\nADDITIONAL INSTRUCTIONS:\n{custom_instructions}"
+
+    response = client.chat.completions.create(
+        model=settings.ai_model or "deepseek-chat",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+    )
+
+    import json
+    data = json.loads(response.choices[0].message.content)
+
+    return VideoMetadata(
+        title=data["title"],
+        description=data["description"],
+        tags=data["tags"],
+        category_id=data["category_id"],
+        suggested_thumbnail_index=data.get("suggested_thumbnail_index", 0),
+    )
+
+
+def generate_metadata_gemini(
+    analysis: AnalysisResult,
+    custom_instructions: Optional[str] = None,
+) -> VideoMetadata:
+    """Generate metadata using Google Gemini."""
+    settings = get_settings()
+
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        raise ImportError("google-generativeai not installed. Run: pip install google-generativeai")
+
+    if not settings.google_api_key:
+        raise ValueError("GOOGLE_API_KEY not set in .env")
+
+    genai.configure(api_key=settings.google_api_key)
+    model = genai.GenerativeModel(settings.ai_model or "gemini-1.5-flash")
+
+    prompt = METADATA_PROMPT.format(
+        transcript=analysis.transcript[:8000],
+        duration=analysis.video_info.duration,
+        minutes=analysis.video_info.duration / 60,
+        width=analysis.video_info.width,
+        height=analysis.video_info.height,
+        filename=analysis.video_info.path.name,
+    )
+
+    if custom_instructions:
+        prompt += f"\n\nADDITIONAL INSTRUCTIONS:\n{custom_instructions}"
+
+    response = model.generate_content(
+        prompt,
+        generation_config=genai.types.GenerationConfig(
+            response_mime_type="application/json",
+        ),
+    )
+
+    import json
+    data = json.loads(response.text)
+
+    return VideoMetadata(
+        title=data["title"],
+        description=data["description"],
+        tags=data["tags"],
+        category_id=data["category_id"],
+        suggested_thumbnail_index=data.get("suggested_thumbnail_index", 0),
+    )
+
+
 def generate_metadata(
     analysis: AnalysisResult,
     custom_instructions: Optional[str] = None,
@@ -157,9 +256,13 @@ def generate_metadata(
     """Generate metadata using configured AI provider."""
     settings = get_settings()
 
-    if settings.ai_provider == "anthropic":
+    if settings.ai_provider == "deepseek":
+        return generate_metadata_deepseek(analysis, custom_instructions)
+    elif settings.ai_provider == "anthropic":
         return generate_metadata_anthropic(analysis, custom_instructions)
     elif settings.ai_provider == "openai":
         return generate_metadata_openai(analysis, custom_instructions)
+    elif settings.ai_provider == "gemini":
+        return generate_metadata_gemini(analysis, custom_instructions)
     else:
         raise ValueError(f"Unknown AI provider: {settings.ai_provider}")

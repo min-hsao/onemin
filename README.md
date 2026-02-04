@@ -1,4 +1,4 @@
-# 1MinAutoYT
+# OneMin
 
 > Upload YouTube videos in one minute. Automated metadata, thumbnails, and publishing.
 
@@ -13,14 +13,14 @@
 ## Installation
 
 ```bash
-pip install 1minautoyt
+pip install onemin
 ```
 
 Or from source:
 
 ```bash
-git clone https://github.com/min-hsao/1minautoyt.git
-cd 1minautoyt
+git clone https://github.com/min-hsao/onemin.git
+cd onemin
 pip install -e .
 ```
 
@@ -29,23 +29,23 @@ pip install -e .
 ### Interactive Mode (step-by-step)
 
 ```bash
-1minautoyt
+onemin
 ```
 
 ### CLI Mode (automation)
 
 ```bash
 # Process a specific video
-1minautoyt upload video.mp4
+onemin upload video.mp4
 
 # Process with custom title
-1minautoyt upload video.mp4 --title "My Custom Title"
+onemin upload video.mp4 --title "My Custom Title"
 
 # Watch folder for new videos
-1minautoyt watch
+onemin watch
 
 # Generate metadata only (no upload)
-1minautoyt analyze video.mp4
+onemin analyze video.mp4
 ```
 
 ## Configuration
