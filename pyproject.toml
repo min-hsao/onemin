@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "1minautoyt"
+version = "0.1.0"
+description = "Upload YouTube videos in one minute. Automated metadata, thumbnails, and publishing."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Min-Hsao Chen", email = "minhsao@gmail.com" }
+]
+keywords = ["youtube", "automation", "upload", "ai", "thumbnail"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Content Creators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "watchdog>=3.0.0",
+    "ffmpeg-python>=0.2.0",
+    "openai-whisper>=20231117",
+    "openai>=1.0.0",
+    "anthropic>=0.18.0",
+    "google-api-python-client>=2.100.0",
+    "google-auth-oauthlib>=1.0.0",
+    "google-auth-httplib2>=0.1.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+1minautoyt = "minautoyt.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/min-hsao/1minautoyt"
+Repository = "https://github.com/min-hsao/1minautoyt"
+Issues = "https://github.com/min-hsao/1minautoyt/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["minautoyt"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true

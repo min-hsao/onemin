@@ -1,0 +1,10 @@
+{
+  "watch_folder": "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Upload",
+  "youtube_channel": "your-channel-name",
+  "default_privacy": "unlisted",
+  "thumbnail_style": "mrbeast",
+  "ai_provider": "anthropic",
+  "ai_model": "claude-sonnet-4-20250514",
+  "max_frames": 10,
+  "transcribe_model": "base"
+}
